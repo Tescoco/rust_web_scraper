@@ -1,4 +1,6 @@
 use reqwest::Client;
+use std::env;
+use dotenv::dotenv;
 
 #[derive(Debug)]
 struct PokemonProduct {
@@ -15,7 +17,7 @@ async fn send_telegram_message(token: &str, chat_id: &str, message: &str) -> Res
         ("text", message),
     ];
 
-    let response = client.post(&url)
+    client.post(&url)
         .form(&params)
         .send()
         .await?;
@@ -25,6 +27,8 @@ async fn send_telegram_message(token: &str, chat_id: &str, message: &str) -> Res
 
 #[tokio::main]
 async fn main() {
+
+    dotenv().ok();
 
     let token = env::var("TOKEN").expect("TOKEN environment variable not set");
     let chat_id = env::var("CHAT_ID").expect("CHAT_ID environment variable not set");
@@ -54,20 +58,25 @@ async fn main() {
             .get(7)
             .unwrap()
             .to_owned();  
- 
+
+        println!("{} - {}", name, url);
+
         let pokemon_product = PokemonProduct {
             url,
             name,
         };
-       pokemon_products.push(pokemon_product);
+
+        pokemon_products.push(pokemon_product);
     }
 
-    let message = pokemon_products.iter().map(|product| format!("{} - {}", product.name, product.url)).collect::<Vec<String>>().join("\n");
+      let message = pokemon_products
+        .iter()
+        .map(|product| format!("{} - {}", product.name, product.url))
+        .collect::<Vec<String>>()
+        .join("\n");
 
-     match send_telegram_message(token, chat_id, &message).await {
+      match send_telegram_message(&token, &chat_id, &message).await {
          Ok(_) => println!("Message sent successfully!"),
          Err(e) => println!("Failed to send message: {:?}", e),
        }
-
-    println!("{:?}", pokemon_products);
 }
