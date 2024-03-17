@@ -1,1 +1,1 @@
-A simple web scrapper with rust
+A simple web job scrapper with rust and telegram api
